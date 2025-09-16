@@ -106,6 +106,15 @@
 //! - [`mpmc::MpMcQueue`](mpmc): A lock-free multiple-producer, multiple-consumer queue.
 //! - [`spsc::Queue`](spsc): A lock-free single-producer, single-consumer queue.
 //!
+//! # Zeroize Support
+//!
+//! Enables secure memory wiping for the data structures via the [`zeroize`](https://crates.io/crates/zeroize)
+//! crate. Sensitive data can be properly erased from memory when no longer needed.
+//!
+//! When zeroizing a container, all underlying memory (including unused portion of the containers)
+//! is overwritten with zeros, length counters are reset, and the container is left in a valid but
+//! empty state that can be reused.
+//!
 //! # Minimum Supported Rust Version (MSRV)
 //!
 //! This crate does *not* have a Minimum Supported Rust Version (MSRV) and may make use of language

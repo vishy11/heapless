@@ -11,6 +11,9 @@ use core::{
     slice,
 };
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 use crate::len_type::{check_capacity_fits, LenType};
 use crate::CapacityError;
 
@@ -84,7 +87,11 @@ mod storage {
             Self: VecStorage<T>;
     }
 
+    #[cfg(feature = "zeroize")]
+    use zeroize::Zeroize;
+
     // One sealed layer of indirection to hide the internal details (The MaybeUninit).
+    #[cfg_attr(feature = "zeroize", derive(Zeroize))]
     pub struct VecStorageInner<T: ?Sized> {
         pub(crate) buffer: T,
     }
@@ -208,6 +215,7 @@ pub use drain::Drain;
 ///
 /// In most cases you should use [`Vec`] or [`VecView`] directly. Only use this
 /// struct if you want to write code that's generic over both.
+#[cfg_attr(feature = "zeroize", derive(Zeroize))]
 pub struct VecInner<T, LenT: LenType, S: VecStorage<T> + ?Sized> {
     phantom: PhantomData<T>,
     len: LenT,
@@ -1415,7 +1423,7 @@ impl<'a, T, LenT: LenType, S: VecStorage<T> + ?Sized> IntoIterator for &'a VecIn
 }
 
 impl<'a, T, LenT: LenType, S: VecStorage<T> + ?Sized> IntoIterator
-    for &'a mut VecInner<T, LenT, S>
+for &'a mut VecInner<T, LenT, S>
 {
     type Item = &'a mut T;
     type IntoIter = slice::IterMut<'a, T>;
@@ -1672,7 +1680,7 @@ where
 impl<T, LenT: LenType, S: VecStorage<T> + ?Sized> Eq for VecInner<T, LenT, S> where T: Eq {}
 
 impl<T, LenTA: LenType, LenTB: LenType, SA: VecStorage<T> + ?Sized, SB: VecStorage<T> + ?Sized>
-    PartialOrd<VecInner<T, LenTA, SA>> for VecInner<T, LenTB, SB>
+PartialOrd<VecInner<T, LenTA, SA>> for VecInner<T, LenTB, SB>
 where
     T: PartialOrd,
 {

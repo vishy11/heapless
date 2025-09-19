@@ -33,6 +33,9 @@ use core::mem::MaybeUninit;
 use core::ops::{Deref, DerefMut};
 use core::ptr;
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 mod storage {
     use super::{LenType, Node, SortedLinkedListInner, SortedLinkedListView};
 
@@ -841,6 +844,21 @@ where
             unsafe {
                 ptr::drop_in_place(node.val.as_mut_ptr());
             }
+        }
+    }
+}
+
+#[cfg(feature = "zeroize")]
+impl<T, Idx, K, S> Zeroize for SortedLinkedListInner<T, Idx, K, S>
+where
+    T: Ord + Zeroize,
+    Idx: LenType,
+    K: Kind,
+    S: SortedLinkedListStorage<T, Idx> + ?Sized,
+{
+    fn zeroize(&mut self) {
+        while let Some(mut item) = self.pop() {
+            item.zeroize();
         }
     }
 }

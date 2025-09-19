@@ -75,6 +75,9 @@ use core::sync::atomic;
 #[cfg(feature = "portable-atomic")]
 use portable_atomic as atomic;
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 use atomic::Ordering;
 
 use crate::storage::{OwnedStorage, Storage, ViewStorage};
@@ -98,6 +101,7 @@ type IntSize = i8;
 ///
 /// In most cases you should use [`Queue`] or [`QueueView`] directly. Only use this
 /// struct if you want to write code that's generic over both.
+// Remove the derive since we'll implement Zeroize manually
 pub struct QueueInner<T, S: Storage> {
     dequeue_pos: AtomicTargetSize,
     enqueue_pos: AtomicTargetSize,
@@ -236,6 +240,19 @@ impl<T, S: Storage> Drop for QueueInner<T, S> {
     fn drop(&mut self) {
         // Drop all elements currently in the queue.
         while self.dequeue().is_some() {}
+    }
+}
+
+#[cfg(feature = "zeroize")]
+impl<T, S: Storage> Zeroize for QueueInner<T, S>
+where
+    T: Zeroize
+{
+    fn zeroize(&mut self) {
+        while let Some(item) = self.dequeue() {
+            let mut temp = item;
+            temp.zeroize();
+        }
     }
 }
 

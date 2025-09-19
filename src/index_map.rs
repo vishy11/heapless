@@ -8,6 +8,9 @@ use core::{
     ops, slice,
 };
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 use hash32::{BuildHasherDefault, FnvHasher};
 
 use crate::Vec;
@@ -88,6 +91,7 @@ pub struct Bucket<K, V> {
 
 #[doc(hidden)]
 #[derive(Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "zeroize", derive(Zeroize))]
 pub struct Pos {
     // compact representation of `{ hash_value: u16, index: u16 }`
     // To get the most from `NonZero` we store the *value minus 1*. This way `None::Option<Pos>`
@@ -138,6 +142,7 @@ macro_rules! probe_loop {
     }
 }
 
+#[cfg_attr(feature = "zeroize", derive(Zeroize))]
 struct CoreMap<K, V, const N: usize> {
     entries: Vec<Bucket<K, V>, N, usize>,
     indices: [Option<Pos>; N],
@@ -722,8 +727,11 @@ where
 ///     println!("{}: \"{}\"", book, review);
 /// }
 /// ```
+
+#[cfg_attr(feature = "zeroize", derive(Zeroize))]
 pub struct IndexMap<K, V, S, const N: usize> {
     core: CoreMap<K, V, N>,
+    #[zeroize(skip)]
     build_hasher: S,
 }
 

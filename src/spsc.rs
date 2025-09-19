@@ -107,6 +107,9 @@ use core::sync::atomic;
 #[cfg(feature = "portable-atomic")]
 use portable_atomic as atomic;
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 use atomic::{AtomicUsize, Ordering};
 
 use crate::storage::{OwnedStorage, Storage, ViewStorage};
@@ -686,6 +689,18 @@ impl<T, S: Storage> Drop for QueueInner<T, S> {
             unsafe {
                 ptr::drop_in_place(item);
             }
+        }
+    }
+}
+
+#[cfg(feature = "zeroize")]
+impl<T, S: Storage> Zeroize for QueueInner<T, S>
+where
+    T: Zeroize
+{
+    fn zeroize(&mut self) {
+        while let Some(mut item) = self.dequeue() {
+            item.zeroize();
         }
     }
 }

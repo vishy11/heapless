@@ -38,9 +38,12 @@ use core::ops::Deref;
 use core::ptr;
 use core::slice;
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 mod storage {
     use core::mem::MaybeUninit;
-
+    use zeroize::Zeroize;
     use super::{HistoryBufInner, HistoryBufView};
 
     /// Trait defining how data for a container is stored.
@@ -83,6 +86,7 @@ mod storage {
     }
 
     // One sealed layer of indirection to hide the internal details (The MaybeUninit).
+    #[cfg_attr(feature = "zeroize", derive(Zeroize))]
     pub struct HistoryBufStorageInner<T: ?Sized> {
         pub(crate) buffer: T,
     }
@@ -148,6 +152,7 @@ use self::storage::HistoryBufSealedStorage;
 ///
 /// In most cases you should use [`HistoryBuf`] or [`HistoryBufView`] directly. Only use this
 /// struct if you want to write code that's generic over both.
+#[cfg_attr(feature = "zeroize", derive(Zeroize))]
 pub struct HistoryBufInner<T, S: HistoryBufStorage<T> + ?Sized> {
     // This phantomdata is required because otherwise rustc thinks that `T` is not used
     phantom: PhantomData<T>,

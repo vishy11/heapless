@@ -4,6 +4,9 @@
 
 use core::{borrow::Borrow, fmt, mem, ops, slice};
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 use crate::vec::{OwnedVecStorage, Vec, VecInner, ViewVecStorage};
 
 mod storage {
@@ -88,6 +91,7 @@ pub type OwnedStorage<K, V, const N: usize> = OwnedVecStorage<(K, V), N>;
 pub type ViewStorage<K, V> = ViewVecStorage<(K, V)>;
 
 /// Base struct for [`LinearMap`] and [`LinearMapView`]
+#[cfg_attr(feature = "zeroize", derive(Zeroize), zeroize(bound = "S: Zeroize"))]
 pub struct LinearMapInner<K, V, S: LinearMapStorage<K, V> + ?Sized> {
     pub(crate) buffer: VecInner<(K, V), usize, S>,
 }

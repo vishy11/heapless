@@ -42,10 +42,14 @@ use core::marker::PhantomData;
 use core::mem::{ManuallyDrop, MaybeUninit};
 use core::{ptr, slice};
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 /// Base struct for [`Deque`] and [`DequeView`], generic over the [`VecStorage`].
 ///
 /// In most cases you should use [`Deque`] or [`DequeView`] directly. Only use this
 /// struct if you want to write code that's generic over both.
+#[cfg_attr(feature = "zeroize", derive(Zeroize))]
 pub struct DequeInner<T, S: VecStorage<T> + ?Sized> {
     // This phantomdata is required because otherwise rustc thinks that `T` is not used
     phantom: PhantomData<T>,

@@ -5,6 +5,9 @@ use core::{
     hash::{BuildHasher, Hash},
 };
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 use hash32::{BuildHasherDefault, FnvHasher};
 
 use crate::index_map::{self, IndexMap};
@@ -85,6 +88,8 @@ pub type FnvIndexSet<T, const N: usize> = IndexSet<T, BuildHasherDefault<FnvHash
 ///     println!("{}", book);
 /// }
 /// ```
+
+#[cfg_attr(feature = "zeroize", derive(Zeroize))]
 pub struct IndexSet<T, S, const N: usize> {
     map: IndexMap<T, (), S, N>,
 }

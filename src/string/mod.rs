@@ -11,6 +11,9 @@ use core::{
     str::{self, Utf8Error},
 };
 
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
+
 use crate::CapacityError;
 use crate::{
     len_type::LenType,
@@ -144,6 +147,14 @@ pub type ViewStorage = ViewVecStorage<u8>;
 /// struct if you want to write code that's generic over both.
 pub struct StringInner<LenT: LenType, S: StringStorage + ?Sized> {
     vec: VecInner<u8, LenT, S>,
+}
+
+#[cfg(feature = "zeroize")]
+impl<LenT: LenType, S: StringStorage + ?Sized> Zeroize for StringInner<LenT, S> {
+    fn zeroize(&mut self) {
+        self.vec.zeroize();
+        self.clear();
+    }
 }
 
 /// A fixed capacity [`String`](https://doc.rust-lang.org/std/string/struct.String.html).

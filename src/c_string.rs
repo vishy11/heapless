@@ -17,9 +17,19 @@ use zeroize::Zeroize;
 ///
 /// It stores up to `N - 1` non-nul characters with a trailing nul terminator.
 #[derive(Clone, Hash)]
-#[cfg_attr(feature = "zeroize", derive(Zeroize))]
 pub struct CString<const N: usize, LenT: LenType = usize> {
     inner: Vec<u8, N, LenT>,
+}
+
+#[cfg(feature = "zeroize")]
+impl<const N: usize, LenT: LenType> Zeroize for CString<N, LenT> {
+    fn zeroize(&mut self) {
+        self.inner.zeroize();
+        self.inner.clear();
+
+        // assert N > 0
+        unsafe { self.inner.push_unchecked(b'\0') };
+    }
 }
 
 impl<const N: usize, LenT: LenType> CString<N, LenT> {

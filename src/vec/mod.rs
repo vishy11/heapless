@@ -215,11 +215,7 @@ pub use drain::Drain;
 ///
 /// In most cases you should use [`Vec`] or [`VecView`] directly. Only use this
 /// struct if you want to write code that's generic over both.
-#[cfg_attr(
-    feature = "zeroize",
-    derive(Zeroize),
-    zeroize(bound = "S: Zeroize, LenT: Zeroize")
-)]
+#[cfg_attr(feature = "zeroize", derive(Zeroize), zeroize(bound = "S: Zeroize"))]
 pub struct VecInner<T, LenT: LenType, S: VecStorage<T> + ?Sized> {
     phantom: PhantomData<T>,
     len: LenT,
@@ -2290,6 +2286,35 @@ mod tests {
 
         for i in 0..8 {
             assert_eq!(v[i], 0);
+        }
+    }
+
+    #[test]
+    #[cfg(feature = "zeroize")]
+    fn test_vecview_zeroize() {
+        use zeroize::Zeroize;
+
+        let mut v: Vec<u8, 8> = Vec::new();
+        for i in 0..8 {
+            v.push(i).unwrap();
+        }
+
+        let view = v.as_mut_view();
+
+        for i in 0..8 {
+            assert_eq!(view[i], i as u8);
+        }
+
+        view.zeroize();
+
+        assert_eq!(view.len(), 0);
+
+        unsafe {
+            view.set_len(8);
+        }
+
+        for i in 0..8 {
+            assert_eq!(view[i], 0);
         }
     }
 
